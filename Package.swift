@@ -17,14 +17,10 @@ let package = Package(
         .target(name: "CryptonetPackage",
                 dependencies: [
                     .target(
-                        name: "privid_fhe"
-                    ),
-                    .target(
-                        name: "TensorFlowLite"
+                        name: "privid_fhe_uber"
                     )
                 ]
         ),
-        .binaryTarget(name: "privid_fhe", path: "./privid_fhe.xcframework"),
-        .binaryTarget(name: "TensorFlowLite", path: "./TensorFlowLite.xcframework"),
+        .binaryTarget(name: "privid_fhe_uber", path: "./privid_fhe_uber.xcframework")
     ]
 )
