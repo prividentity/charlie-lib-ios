@@ -164,6 +164,93 @@ public class CryptonetPackage {
         guard let outputString = outputString else { return .failure(CryptonetError.noJSON) }
         return .success(outputString)
     }
+    
+    public func frontDocumentScan(image: UIImage, config: DocumentFrontScanConfig) -> Result<ScanModel, Error> {
+        guard let sessionPointer = self.sessionPointer,
+              let resized = image.resizeImage(targetSize: CGSize(width: 1000, height: 1000)),
+              let cgImage = resized.cgImage else {
+            return .failure(CryptonetError.failed)
+        }
+        
+        do {
+            let configData = try JSONEncoder().encode(config)
+            let userConfig = NSString(string: String(data: configData, encoding: .utf8)!)
+            let byteImageArray = convertImageToRgbaRawBitmap(image: cgImage)
+            
+            let imageWidth = Int32(resized.size.width)
+            let imageHeight = Int32(resized.size.height)
+            
+            let userConfigPointer = UnsafeMutablePointer<CChar>(mutating: userConfig.utf8String)
+            
+            let bufferOut = UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: 1)
+            let lengthOut = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+
+            let _ = privid_doc_scan_front(sessionPointer,
+                                         userConfigPointer,
+                                         Int32(userConfig.length),
+                                         byteImageArray,
+                                         imageWidth,
+                                         imageHeight,
+                                         bufferOut,
+                                         lengthOut)
+
+            let outputString = convertToNSString(pointer: bufferOut)
+
+            privid_free_char_buffer(bufferOut.pointee)
+            
+            bufferOut.deallocate()
+            lengthOut.deallocate()
+
+            guard let outputString = outputString else { return .failure(CryptonetError.noJSON) }
+            return .success(ScanModel(json: outputString, documentImage: nil, mugshotImage: nil))
+        } catch {
+            return .failure(CryptonetError.failed)
+        }
+    }
+    
+    public func backDocumentScan(image: UIImage, config: DocumentBackScanConfig) -> Result<ScanModel, Error> {
+        guard let sessionPointer = self.sessionPointer,
+              let resized = image.resizeImage(targetSize: CGSize(width: 1000, height: 1000)),
+              let cgImage = resized.cgImage else {
+            return .failure(CryptonetError.failed)
+        }
+        
+        do {
+            let configData = try JSONEncoder().encode(config)
+            let userConfig = NSString(string: String(data: configData, encoding: .utf8)!)
+            
+            let byteImageArray = convertImageToRgbaRawBitmap(image: cgImage)
+            
+            let imageWidth = Int32(resized.size.width)
+            let imageHeight = Int32(resized.size.height)
+            
+            let userConfigPointer = UnsafeMutablePointer<CChar>(mutating: userConfig.utf8String)
+            
+            let bufferOut = UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: 1)
+            let lengthOut = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+            
+            let _ = privid_doc_scan_back(sessionPointer,
+                                            userConfigPointer,
+                                            Int32(userConfig.length),
+                                            byteImageArray,
+                                            imageWidth,
+                                            imageHeight,
+                                            bufferOut,
+                                            lengthOut)
+            
+            let outputString = convertToNSStringForBarcode(pointer: bufferOut)
+
+            privid_free_char_buffer(bufferOut.pointee)
+            
+            bufferOut.deallocate()
+            lengthOut.deallocate()
+
+            guard let outputString = outputString else { return .failure(CryptonetError.noJSON) }
+            return .success(ScanModel(json: outputString, documentImage: nil, mugshotImage: nil))
+        } catch {
+            return .failure(CryptonetError.failed)
+        }
+    }
 }
 
 private extension CryptonetPackage {
@@ -186,5 +273,15 @@ private extension CryptonetPackage {
     func convertToNSString(pointer: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>) -> String? {
         guard let cStringPointer = pointer.pointee else { return nil }
         return String(NSString(utf8String: cStringPointer) ?? "")
+    }
+    
+    func convertToNSStringForBarcode(pointer: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>) -> String? {  // TEMP SOLUTION
+        guard let cStringPointer = pointer.pointee else { return nil }
+        var string = String(NSString(utf8String: cStringPointer) ?? "")
+        if let dotRange = string.range(of: "),") {
+            string.removeSubrange(dotRange.lowerBound..<string.endIndex)
+        }
+        
+        return string
     }
 }

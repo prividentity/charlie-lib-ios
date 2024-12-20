@@ -133,7 +133,6 @@ PRIVID_API_ATTRIB int32_t privid_user_predict(
 * \param[in]    embedding_one_length    The size of the #embedding_one string in bytes.
 * \param[in]    embedding_two           The UTF-8 encoded encrypted embedding previously obtained from the enroll or predict call.
 * \param[in]    embedding_two_length    The size of the #embedding_one string in bytes.
-* \param[in]    image_height            The pixel height of the #image_bytes input image.
 * \param[out]   result_out              The output buffer for the UTF-8 encoded JSON string with operation results.
 * \param[out]   result_out_length       The size of the #result_out string in bytes.
 *
@@ -143,6 +142,66 @@ PRIVID_API_ATTRIB int32_t privid_compare_embeddings(
     void* session_ptr, const char* user_config, const int user_config_length,
     const char *embedding_one, const int embedding_one_length,
     const char *embedding_two, const int embedding_two_length,
+    char** result_out, int* result_out_length);
+
+/**
+* TBD
+* After usage, the pointer returned in the #resul_out parameter should be deallocated using the #privid_free_char_buffer call.
+*
+* \param[in]    session_ptr             The session pointer which obtained from the function #privid_initialized_session call.
+* \param[in]    user_config             The UTF-8 encoded JSON string with configuration parameters applied for this operation only.
+* \param[in]    user_config_length      The size of the #user_config string in bytes.
+* \param[in]    image_bytes             The input image is a raw bytes pixel buffer (bitmap).
+* \param[in]    image_width             The pixel width of the #image_bytes input image.
+* \param[in]    image_height            The pixel height of the #image_bytes input image.
+* \param[out]   result_out              The output buffer for the UTF-8 encoded JSON string with operation results.
+* \param[out]   result_out_length       The size of the #result_out string in bytes.
+*
+* \return       Operation identifier in case of successful completion or negative value in case of errors.
+*/
+PRIVID_API_ATTRIB int32_t privid_doc_scan_front(
+    void* session_ptr, const char* user_config, const int user_config_length,
+    const uint8_t* image_bytes, const int image_width, const int image_height,
+    char** result_out, int* result_out_length);
+
+/**
+* TBD
+* After usage, the pointer returned in the #resul_out parameter should be deallocated using the #privid_free_char_buffer call.
+*
+* \param[in]    session_ptr             The session pointer which obtained from the function #privid_initialized_session call.
+* \param[in]    user_config             The UTF-8 encoded JSON string with configuration parameters applied for this operation only.
+* \param[in]    user_config_length      The size of the #user_config string in bytes.
+* \param[in]    image_bytes             The input image is a raw bytes pixel buffer (bitmap).
+* \param[in]    image_width             The pixel width of the #image_bytes input image.
+* \param[in]    image_height            The pixel height of the #image_bytes input image.
+* \param[out]   result_out              The output buffer for the UTF-8 encoded JSON string with operation results.
+* \param[out]   result_out_length       The size of the #result_out string in bytes.
+*
+* \return       Operation identifier in case of successful completion or negative value in case of errors.
+*/
+PRIVID_API_ATTRIB int32_t privid_doc_scan_back(
+    void* session_ptr, const char* user_config, const int user_config_length,
+    const uint8_t* image_bytes, const int image_width, const int image_height,
+    char** result_out, int* result_out_length);
+
+/**
+* Encrypts input request string using the session public key and return the encrypted request for future usage with backend.
+* The result is returned in the JSON format for future parsing. In case of success, it contains the user encrypted request.
+* After usage, the pointer returned in the #resul_out parameter should be deallocated using the #privid_free_char_buffer call.
+*
+* \param[in]    session_ptr             The session pointer which obtained from the function #privid_initialized_session call.
+* \param[in]    user_config             The UTF-8 encoded JSON string with configuration parameters applied for this operation only.
+* \param[in]    user_config_length      The size of the #user_config string in bytes.
+* \param[in]    payload                 The UTF-8 encoded JSON string with original (unencrypted) payload.
+* \param[in]    payload_length          The size of the #payload string in bytes.
+* \param[out]   result_out              The output buffer for the UTF-8 encoded JSON string with operation results.
+* \param[out]   result_out_length       The size of the #result_out string in bytes.
+*
+* \return       Operation identifier in case of successful completion or negative value in case of errors.
+*/
+PRIVID_API_ATTRIB int32_t privid_encrypt_payload(
+    void* session_ptr, const char* user_config, const int user_config_length,
+    const char* payload, const int payload_length,
     char** result_out, int* result_out_length);
 
 /**
