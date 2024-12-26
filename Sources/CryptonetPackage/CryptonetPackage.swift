@@ -251,6 +251,54 @@ public class CryptonetPackage {
             return .failure(CryptonetError.failed)
         }
     }
+    
+    public func compareEmbeddings(one: String, two: String, config: CompareEmbeddingsConfig) -> Result<String, Error> {
+        guard let sessionPointer = self.sessionPointer else {
+            return .failure(CryptonetError.failed)
+        }
+
+        do {
+            let configData = try JSONEncoder().encode(config)
+            let userConfig = NSString(string: String(data: configData, encoding: .utf8)!)
+            
+            let userConfigPointer = UnsafeMutablePointer<CChar>(mutating: userConfig.utf8String)
+
+            
+            let oneBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: one.count)
+            oneBuffer.initialize(from: one, count: one.count)
+            
+            let twoBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: two.count)
+            twoBuffer.initialize(from: two, count: two.count)
+            
+            let bufferOut = UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: 1)
+            let lengthOut = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+            
+            let _ = privid_compare_embeddings(sessionPointer,
+                                                      userConfigPointer,
+                                                      Int32(userConfig.length),
+                                                      oneBuffer,
+                                                      Int32(one.count),
+                                                      twoBuffer,
+                                                      Int32(two.count),
+                                                      bufferOut,
+                                                      lengthOut)
+            
+            guard let outputString = convertToNSString(pointer: bufferOut) else {
+                privid_free_char_buffer(bufferOut.pointee)
+                bufferOut.deallocate()
+                lengthOut.deallocate()
+                return .failure(CryptonetError.failed)
+            }
+            
+            privid_free_char_buffer(bufferOut.pointee)
+            bufferOut.deallocate()
+            lengthOut.deallocate()
+            
+            return .success(String(outputString))
+        } catch {
+            return .failure(CryptonetError.failed)
+        }
+    }
 }
 
 private extension CryptonetPackage {
