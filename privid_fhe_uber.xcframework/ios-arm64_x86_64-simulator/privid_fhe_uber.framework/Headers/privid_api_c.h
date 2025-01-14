@@ -2,7 +2,7 @@
  *
  * This cpp file is the api header file exposing APIs for FACE
  * to perform :
- *         Uber Lightweight Librarz
+ *         Uber Lightweight Library
  * @par
  * COPYRIGHT NOTICE: (c) 2024 Private Identity.  All rights reserved.
  */
@@ -207,8 +207,10 @@ PRIVID_API_ATTRIB int32_t privid_encrypt_payload(
 /**
 * Checks if all needed models are loaded properly and initialized correctly.
 *
+* \param[out]   is_enroll_mode       If the value is true, check all models, or only prediction-related ones.
 */
-PRIVID_API_ATTRIB bool privid_check_models();
+PRIVID_API_ATTRIB bool privid_check_models(
+    const bool is_enroll_mode);
 
 /**
 * Gets the library version string for debugging/information purposes.
