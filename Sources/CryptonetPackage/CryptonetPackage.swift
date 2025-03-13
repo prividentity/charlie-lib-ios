@@ -299,6 +299,38 @@ public class CryptonetPackage {
             return .failure(CryptonetError.failed)
         }
     }
+    
+    public func encryptPayload(json: NSString) -> Result<String, Error>  {
+        guard let sessionPointer = self.sessionPointer else {
+            return .failure(CryptonetError.failed)
+        }
+
+        let userConfig = NSString(string: "{}")
+        let userConfigPointer = UnsafeMutablePointer<CChar>(mutating: userConfig.utf8String)
+        
+        let jsonPointer = UnsafeMutablePointer<CChar>(mutating: json.utf8String)
+
+        let bufferOut = UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: 1)
+        let lengthOut = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+            
+        let _ = privid_encrypt_payload(sessionPointer,
+                                          userConfigPointer,
+                                          Int32(userConfig.length),
+                                          jsonPointer,
+                                          Int32(json.length),
+                                          bufferOut,
+                                          lengthOut)
+
+        let outputString = convertToNSString(pointer: bufferOut)
+        
+        privid_free_char_buffer(bufferOut.pointee)
+        
+        bufferOut.deallocate()
+        lengthOut.deallocate()
+        
+        guard let outputString = outputString else { return .failure(CryptonetError.noJSON) }
+        return .success(outputString)
+    }
 }
 
 private extension CryptonetPackage {
